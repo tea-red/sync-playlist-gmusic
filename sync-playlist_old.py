@@ -1,0 +1,82 @@
+from libpytunes import Library
+from gmusicapi import Mobileclient
+from dotenv import load_dotenv
+import os
+
+# プレイリスト削除→新規作成版
+
+
+# .envファイルから設定値読み込み
+load_dotenv()
+
+# itunes music library xmlのパスを取得
+ITUNES_MUSIC_LIBLARY_XML_PATH = os.environ["ITUNES_MUSIC_LIBLARY_XML_PATH"]
+
+mc = Mobileclient()
+mc.oauth_login(mc.FROM_MAC_ADDRESS)
+
+# google play musicの曲リストを取得
+gLibrary = mc.get_all_songs()
+
+# google play musicのプレイリストを取得
+gPlaylists = mc.get_all_playlists()
+
+# itunesのライブラリファイル読み込み
+iLibrary = Library(ITUNES_MUSIC_LIBLARY_XML_PATH)
+
+# プレイリスト一覧を取得
+iAllPlaylists = iLibrary.il['Playlists']
+
+# プレイリスト一覧からスマートプレイリスト、自作のプレイリスト以外を除く
+iPlaylists = filter(lambda v: (('Distinguished Kind') not in v) and (('Master') not in v) , iAllPlaylists)
+
+print('load end')
+
+# itunesのプレイリストごとに
+for iPlaylist in iPlaylists:
+    # プレイリスト名を表示
+    print("playlistName = {p}".format(p=iPlaylist['Name']))
+
+    # google play musicの一致するプレイリストを取得
+    filteredPlaylists = filter(lambda v: v['name'] == iPlaylist['Name'], gPlaylists)
+
+    # ここでプレイリストを削除でなくプレイリストの登録曲の削除にする。
+
+    # 取得できたら削除を実施
+    for filteredPlaylist in filteredPlaylists:
+        mc.delete_playlist(filteredPlaylist['id'])
+
+    # 改めて作成してプレイリストidを取得
+    gPlaylistId = mc.create_playlist(iPlaylist['Name'])
+
+    # itunesのプレイリストに含まれるTrack IDのリストを取得
+    iPlTrIds = map(lambda v: v['Track ID'], iPlaylist['Playlist Items'])
+
+    # itunesのtrackidからgoogle play musicのsong idリストを取得
+    def getGSongIdFromITrackId(iTrackId):
+        # 紐づくitunesの曲情報を取得
+        iSong = iLibrary.songs.get(iTrackId)
+
+        # itunesのタイトル、アルバム、アーティストに一致するgoogle play musicのトラックを取得
+        foundGTrack = [
+            gTrack for gTrack in gLibrary
+            if gTrack['title'] == iSong.name
+            and gTrack['album'] == iSong.album
+            and gTrack['artist'] == iSong.artist
+        ]
+
+        # (1曲に特定できない、一致する曲がない)
+        if(len(foundGTrack) != 1):
+            # メッセージを出力
+            print("not found {n}".format(n=iSong.name))
+            return None
+
+        return foundGTrack[0]['id']
+
+    # 登録対象のgoogle play musicのidリストを取得
+    addGTrackIdIter = map(lambda id: getGSongIdFromITrackId(id),iPlTrIds)
+    addGTrackIdList = [id for id in addGTrackIdIter]
+
+    # 対象のidを作成したプレイリストへ登録
+    addResult = mc.add_songs_to_playlist(gPlaylistId, addGTrackIdList)
+
