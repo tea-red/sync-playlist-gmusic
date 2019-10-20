@@ -1,6 +1,7 @@
 from libpytunes import Library
 from gmusicapi import Mobileclient
 from dotenv import load_dotenv
+import time
 import os
 
 # プレイリストの曲を削除(プレイリストはそのまま)→新規追加版
@@ -96,6 +97,9 @@ for iPlaylist in iPlaylists:
     # 登録対象のgoogle play musicのidリストを取得
     addGTrackIdIter = map(lambda id: getGSongIdFromITrackId(id),iPlTrIds)
     addGTrackIdList = [id for id in addGTrackIdIter]
+
+    # スリープ
+    time.sleep(1)
 
     # 対象のidを登録対象のプレイリストへ追加
     addResult = mc.add_songs_to_playlist(gPlaylistId, addGTrackIdList)
