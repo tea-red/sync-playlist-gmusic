@@ -9,7 +9,7 @@ itunesのプレイリスト情報をgoogle-play-musicと同期させます。
 ### 使用ライブラリの事前インストール
 
 ```bash
-pip libpytunes gmusicapi python-dotenv
+pip install itunesLibrary gmusicapi python-dotenv
 ```
 
 ### google-play-musicのログイン情報取得
@@ -22,7 +22,9 @@ iTunesから「iTunes Library.xml」をエクスポートしておきの配置�
 
 ### .envファイルの準備
 
-.env.exampleをコピーして.envファイルにリネームし、`ITUNES_MUSIC_LIBLARY_XML_PATH`へ「iTunes Library.xml」のパスを指定します。
+.env.exampleをコピーして.envファイルにリネームし、
+`ITUNES_MUSIC_LIBLARY_XML_PATH`へ「iTunes Library.xml」のパスを指定します。
+`SYNC_PLAYLIST_NAME`同期したいプレイリスト名を記載しておきます。
 
 ### 同期の実行
 
@@ -37,17 +39,15 @@ python sync-playlist.py
 
 ### その他
 
-sync-playlist_old.py
-同期するplaylistが存在する場合に該当のプレイリストを削除する方式のプログラムです。
-
 clear-playlist.py
 google play musicのプレイリストを全削除します。
 
 ### 利用ライブラリ
 
 以下のライブリを利用させて頂いています。
-libpytunes
-https://github.com/liamks/libpytunes
+
+itunes-library
+https://github.com/scholnicks/itunes-library
 
 gmusicapi
 https://github.com/simon-weber/gmusicapi
